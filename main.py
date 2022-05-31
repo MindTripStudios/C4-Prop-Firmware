@@ -55,7 +55,7 @@ class Screen:
         if self.mode == -1:
             self.lcd.clear()
             self.lcd.move_to(0, 0)
-            self.lcd.putstr(">timer        " + str(self.bomb_timer))
+            self.lcd.putstr(">timer      " + str(self.bomb_timer))
             self.lcd.move_to(0, 1)
             self.lcd.putstr(" code    " + self.bomb_code)
         if self.mode == 0:
@@ -80,7 +80,8 @@ class Screen:
             self.lcd.move_to(4, 0)
             self.lcd.putstr("Bomb Planted")
             self.lcd.move_to(0, 1)
-            self.lcd.putstr(str(self.bomb_timer) + "       *******")
+            # self.lcd.putstr(str(self.bomb_timer) + "       *******")
+            self.lcd.putstr(self.get_bomb_timer(self.bomb_timer))
         if self.mode == 4:
             self.led.off()
             self.buzzer.duty_u16(0)
@@ -95,6 +96,19 @@ class Screen:
             self.lcd.clear()
             self.lcd.move_to(6, 1)
             self.lcd.putstr("BOOM")
+            
+    def get_bomb_timer(self, time):
+        if time >= 60:
+            minutes = int(time / 60)
+            seconds = int(time % 60)
+            if seconds < 10: 
+                return str(minutes) + ":0" + str(seconds)
+            else:
+                return str(minutes) + ":" + str(seconds)
+        elif time < 10:
+            return "0" + str(time)[:-1]
+        else:
+            return str(time)[:-1]
             
             
     def update(self):
@@ -130,14 +144,14 @@ class Screen:
                             if self.selected_setting == 0:
                                 self.lcd.move_to(0, 0)
                                 self.lcd.putstr("-")
-                                self.lcd.move_to(14, 0)
-                                self.lcd.putstr("  ")
-                                self.lcd.move_to(14, 0)
+                                self.lcd.move_to(12, 0)
+                                self.lcd.putstr("|   ")
+                                self.lcd.move_to(12, 0)
                             else:
                                 self.lcd.move_to(0, 1)
                                 self.lcd.putstr("-")
                                 self.lcd.move_to(9, 1)
-                                self.lcd.putstr("       ")
+                                self.lcd.putstr("|      ")
                                 self.lcd.move_to(9, 1)
                         else:
                             self.code = ""
@@ -151,9 +165,9 @@ class Screen:
             if self.last_keys != []:
                 if self.changing_setting:
                     if self.selected_setting == 0:
-                        self.lcd.move_to(14, 0)
+                        self.lcd.move_to(12, 0)
                         self.lcd.putstr(self.code)
-                        if len(self.code) == 2:
+                        if len(self.code) == 4:
                             self.settings.json['timer'] = int(self.code)
                             self.code = ""
                             self.lcd.move_to(0, 0)
@@ -238,12 +252,8 @@ class Screen:
                 
                 # lcd control
                 if self.timer % 10 == 0:
-                    time = str(self.timer)[:-1]
                     self.lcd.move_to(0, 1)
-                    if len(time) == 2:
-                        self.lcd.putstr(time)
-                    else:
-                        self.lcd.putstr("0" + time)
+                    self.lcd.putstr(self.get_bomb_timer(self.timer / 10))
                 if self.last_keys != []:
                     self.lcd.move_to(9, 1)
                     self.lcd.putstr("{message:*<7}".format(message = self.code))
