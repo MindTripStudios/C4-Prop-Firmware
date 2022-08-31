@@ -38,6 +38,7 @@ class Screen:
         self.last_code = ""
         
         self.timer = 0
+        self.wrong_timer = 0
         
         self.open_settings = 0
         self.settings = settings
@@ -89,7 +90,10 @@ class Screen:
             self.lcd.move_to(2, 0)
             self.lcd.putstr("Bomb Defused")
             self.lcd.move_to(0, 1)
-            self.lcd.putstr("with {message:0<4}s left.".format(message = str(self.timer / 10)))
+            if (self.timer < 600):
+                self.lcd.putstr("with {message:0<4}s left.".format(message = str(self.timer / 10)))
+            else:
+                self.lcd.putstr("with {message:0<4} left.".format(message = self.get_bomb_timer(self.timer / 10)))
             self.timer = 50
         if self.mode == 5:
             self.timer = 30
@@ -106,9 +110,9 @@ class Screen:
             else:
                 return str(minutes) + ":" + str(seconds)
         elif time < 10:
-            return "0" + str(time)[:-1]
+            return "0" + str(time)[:-2] + "  "
         else:
-            return str(time)[:-1]
+            return str(time)[:-2] + "  "
             
             
     def update(self):
@@ -261,15 +265,33 @@ class Screen:
                         if self.code == self.bomb_code:
                             self.change_mode(4)
                         else:
-                            self.change_mode(5)
+                            #self.change_mode(5)
+                            self.lcd.move_to(4, 0)
+                            self.lcd.putstr(" WRONG CODE!")
+                            self.code = ""
+                            self.wrong_timer = 20
+                if self.wrong_timer > 0:
+                    self.wrong_timer -= 1
+                    if self.wrong_timer % 5 < 3:
+                        self.lcd.move_to(4, 0)
+                        self.lcd.putstr("            ")
+                    else:
+                        self.lcd.move_to(4, 0)
+                        self.lcd.putstr(" WRONG CODE!")
+                if self.wrong_timer == 0:
+                    self.lcd.move_to(4, 0)
+                    self.lcd.putstr("Bomb Planted")
+                    self.lcd.move_to(9, 1)
+                    self.lcd.putstr("*******")
+                    self.wrong_timer = -1
             else:
                 self.change_mode(5)
                 
-        if self.mode == 4:
-            if self.timer > 0:
-                self.timer -= 1
-            else:
-                self.change_mode(0)
+        #if self.mode == 4:
+            #if self.timer > 0:
+                #self.timer -= 1
+            #else:
+                #self.change_mode(0)
                 
         if self.mode == 5:
             if self.timer > 0:
@@ -301,8 +323,10 @@ class Screen:
                     self.lcd.move_to(10, 1)
                     self.lcd.putstr("     #")
             else:
-                self.led.off()
-                self.change_mode(0)
+                # self.led.off()
+                # self.change_mode(0)
+                # keep boom up
+                self.timer = 25
                 
 
 settings = Settings()
